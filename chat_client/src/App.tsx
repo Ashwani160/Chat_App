@@ -1,33 +1,47 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [socket, setSocket]= useState<WebSocket | null>(null);
+  const [message, setMessage]= useState<string>("");
+  const [inputMessage, setInputMessage]=useState<string>("");
+
+  const sendMessage = () => {
+    if (!socket || socket.readyState !== WebSocket.OPEN || !inputMessage.trim()) {
+      return;
+    }
+
+    socket.send(inputMessage);
+    setInputMessage("");
+  };
+
+  useEffect(()=>{
+    const socket= new WebSocket('ws://localhost:8080');
+    socket.onopen=()=>{
+      console.log('WebSocket connection established');
+      setSocket(socket);
+    }
+    socket.onmessage=(event)=>{
+      console.log('Received message: ',event.data);
+      setMessage((previousMessage) => previousMessage +" "+ event.data);
+    }
+    return ()=>{
+      socket.close();
+    }
+  },[])
+  if(!socket){
+    return <div>
+      loading...
+    </div>
+  }
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <input type='text' value={inputMessage} onChange={(e)=>setInputMessage(e.target.value)} ></input>
+      <button onClick={sendMessage}>Send</button>
+      <div>{message}</div>
     </>
   )
 }
