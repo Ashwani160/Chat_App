@@ -1,17 +1,24 @@
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import ChatBox from "../components/chat/ChatBox.jsx";
+import { useEffect } from "react";
+import { useState } from "react";
 
 const Room = () => {
   const { roomId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const username=location.state?.username;
 
-  const username = location.state?.username;
-
-  if (!username) {
-    navigate("/");
-    return null;
+  const checkUser=()=>{
+    if (!username) {
+      navigate("/");
+    }
   }
+  useEffect(()=>{
+
+    checkUser();
+
+  },[])
 
   return (
     <div>
